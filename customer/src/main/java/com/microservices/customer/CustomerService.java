@@ -2,15 +2,17 @@ package com.microservices.customer;
 
 import com.microservices.clients.fraud.FraudCheckResponse;
 import com.microservices.clients.fraud.FraudClient;
+import com.microservices.clients.notifications.NotificationClient;
+import com.microservices.clients.notifications.NotificationRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 @AllArgsConstructor
 public class CustomerService {
     private final CustomerRepository customerRepository;
     private final FraudClient fraudClient;
+    private final NotificationClient notificationClient;
     public void registerCustomer(CustomerRegistrationRequest request) {
         Customer customer = Customer.builder().
                 firstName(request.firstName()).
@@ -24,5 +26,7 @@ public class CustomerService {
         if(fraudCheckResponse.isFraudster()){
             throw new IllegalStateException("Fraudster");
         }
+
+        notificationClient.sendNotification(new NotificationRequest(customer.getId(), customer.getEmail(), String.format("Hi %s, Welcome", customer.getFirstName())));
     }
 }
